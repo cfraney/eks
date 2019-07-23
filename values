@@ -1,0 +1,42 @@
+global:
+    environment: 'dev'
+    datacenter: 'nonprod'
+
+    owner: 'blahblah.blah.blah'
+
+    vpcId: 'vpc-xxxxxxxxx'
+
+    resourceName: 'my-cluster-name'
+
+    service: 'eks'
+    application: 'eks'
+    navService: 'eks'
+
+    eksCluster:
+        eks:
+            cluster:
+                resourcesVpcConfig:
+                version: '1.13'
+
+    eksWorkerNodes:
+        ec2:
+            autoscaling:
+                autoscalingGroup:
+                    launchConfigurationName: '!Ref launchConfig'
+                    desiredCapacity: '3'
+                    maxSize: '4'
+                    minSize: '3'
+                    maxBatchSize: '1'
+                    asgStartupTimeout: 'PT1M'
+                    waitOnResourceSignals: 'true'
+                    vpcZoneIdentifier: ['subnet-xxxxxx', 'subnet-xxxxxx', 'subnet-xxxxx']
+
+                launchConfig:
+                    volumeSize: '100'
+                    volumeType: 'gp2'
+                    iamInstanceProfile: 'BaseProfile'
+                    imageId: 'ami-000000000000'
+                    instanceType: 't3.large'
+                    keyName: 'somekeyname'
+                    securityGroups: ['sg-xxxxx', 'sg-xxxxx']
+                    userData: 'Fn::Sub: "#!/bin/bash\nsource /etc/profile\n\nset -o xtrace\n/etc/eks/bootstrap.sh clustername\ngroupadd -g 10001 app\nuseradd -u 10001 -g 10001 app\n/opt/aws/bin/cfn-signal --exit-code $? --stack  ${AWS::StackName} --resource autoScalingGroup --region ${AWS::Region}"'
